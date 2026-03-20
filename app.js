@@ -10,9 +10,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'))
 
-app.get('/', (request, response) => {
-    response.render('index', { titulo : "challenge 8: Plataforma Educativa"})
-});
+const temasController = require('./controllers/temasController');
+app.get('/', temasController.getTemas);
+
 app.use('/temas', require('./routes/temasRoutes'));
 
 const PORT = process.env.PORT || 3000;
