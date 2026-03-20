@@ -4,6 +4,8 @@ const initDB = require('../models/db');
 const getTemas = async (req, res) => {
     try {
         const db = await initDB();
+        
+        // 1. Obtenemos los temas
         const temas = await db.all(`
             SELECT t.*, COUNT(v.id_voto) as votos_tema
             FROM temas t
@@ -11,13 +13,20 @@ const getTemas = async (req, res) => {
             GROUP BY t.id_tema
             ORDER BY votos_tema DESC
         `);
-        const countResult = await db.get('SELECT COUNT(*) as total FROM temas');
-        const total = countResult ? countResult.total : 0;
 
-        res.render('index', { temas, total_temas: total });
+        // 2. MAGIA: Para cada tema, buscamos sus enlaces
+        for (let tema of temas) {
+            tema.enlaces_tema = await db.all('SELECT * FROM enlaces WHERE id_tema = ?', [tema.id_tema]);
+        }
+
+        const countResult = await db.get('SELECT COUNT(*) as total FROM temas');
+        
+        res.render('index', { 
+            temas: temas, 
+            total_temas: countResult.total 
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error en el servidor");
+        res.status(500).send("Error de servidor");
     }
 };
 

@@ -3,99 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huddle Challenge 8 - Ranking de Temas</title>
+    <title>Huddle - Gestión de Temas</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { text-align: center; color: var(--primary); }
+        :root { --primary: #1e293b; --accent: #3b82f6; --bg: #f1f5f9; --border: #e2e8f0; --danger: #ef4444; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: #334155; padding: 40px 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
         
-        .card { 
-            background: white; padding: 20px; border-radius: 12px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            transition: transform 0.2s;
-        }
-        .card:hover { transform: translateY(-2px); }
-        .info { flex-grow: 1; }
-        .info h3 { margin: 0 0 8px 0; color: #000; }
-        .info p { margin: 0; font-size: 0.9em; color: #64748b; }
+        /* Formulario de Creación */
+        .form-container { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px; }
+        .form-group { margin-bottom: 10px; display: flex; gap: 10px; }
+        input, textarea { padding: 8px; border: 1px solid var(--border); border-radius: 4px; flex-grow: 1; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+
+        /* Cards y Acciones */
+        .card { background: white; border: 1px solid var(--border); padding: 24px; border-radius: 8px; margin-bottom: 20px; position: relative; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; }
+        .btn-delete { color: var(--danger); background: none; border: 1px solid var(--danger); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-edit { color: var(--primary); background: none; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
         
-        .votos-badge {
-            background: #dbeafe; color: var(--primary); font-weight: bold;
-            padding: 8px 12px; border-radius: 20px; margin-right: 15px;
-            min-width: 80px; text-align: center;
-        }
-
-        .btn-votar {
-            background-color: var(--primary); color: white; border: none;
-            padding: 10px 20px; border-radius: 8px; cursor: pointer;
-            font-weight: 600; transition: background 0.3s;
-        }
-        .btn-votar:hover { background-color: #1d4ed8; }
-        .btn-votar:active { transform: scale(0.95); }
-
-        .total-footer { text-align: center; margin-top: 30px; font-weight: bold; color: #64748b; }
+        .enlaces-section { margin-top: 15px; font-size: 0.9rem; }
+        .enlace-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .add-link-form { display: flex; gap: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>🚀 Temas para Aprender</h1>
+<div class="container">
+    <h1>Temas de Aprendizaje</h1>
 
-        <div id="lista-temas">
-            <% if (temas.length > 0) { %>
-                <% temas.forEach((tema, index) => { %>
-                    <div class="card">
-                        <div class="votos-badge">
-                            🔥 <%= tema.votos_tema %>
-                        </div>
-                        
-                        <div class="info">
-                            <h3><%= tema.nombre_tema %></h3>
-                            <p><%= tema.descripcion_tema %></p>
-                            <small>Sugerido por: <strong><%= tema.autor_tema %></strong></small>
-                        </div>
-
-                        <button class="btn-votar" onclick="votar(<%= tema.id_tema %>)">
-                            Votar
-                        </button>
-                    </div>
-                <% }) %>
-            <% } else { %>
-                <p style="text-align: center;">No hay temas creados todavía. ¡Usa Postman para crear el primero!</p>
-            <% } %>
+    <div class="form-container">
+        <h3>Proponer Nuevo Tema</h3>
+        <div class="form-group">
+            <input type="text" id="nombre_tema" placeholder="Título del tema">
+            <input type="text" id="autor_tema" placeholder="Tu nombre">
         </div>
-
-        <div class="total-footer">
-            Total de temas en el sistema: <%= total_temas %>
-        </div>
+        <textarea id="descripcion_tema" placeholder="Descripción breve" rows="2" style="width: 100%; margin-bottom: 10px;"></textarea>
+        <button class="btn-primary" onclick="crearTema()">Publicar Tema</button>
     </div>
 
-    <script src="/js/script.js"></script>
+    <div id="lista-temas">
+        <% temas.forEach((tema) => { %>
+            <div class="card" id="tema-<%= tema.id_tema %>">
+                <div style="display: flex; justify-content: space-between;">
+                    <h3><%= tema.nombre_tema %></h3>
+                    <strong><%= tema.votos_tema %> Votos</strong>
+                </div>
+                <p><%= tema.descripcion_tema %></p>
+                <small>Por: <%= tema.autor_tema %></small>
 
-    <script>
-        async function votar(id_tema) {
-            try {
-                // Simulamos un ID de usuario para el Challenge
-                const id_usuario = Math.floor(Math.random() * 1000); 
+                <div class="enlaces-section">
+                    <h4>Recursos:</h4>
+                    <% if (tema.enlaces_tema && tema.enlaces_tema.length > 0) { %>
+                        <% tema.enlaces_tema.forEach(enlace => { %>
+                            <div class="enlace-item">
+                                <a href="<%= enlace.enlace_url %>" target="_blank"><%= enlace.enlace_descripcion %></a>
+                                <button onclick="eliminarEnlace(<%= enlace.id_enlace %>)" style="color:red; border:none; background:none; cursor:pointer;">&times;</button>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                    
+                    <div class="add-link-form">
+                        <input type="text" id="url-<%= tema.id_tema %>" placeholder="URL (http://...)">
+                        <input type="text" id="desc-<%= tema.id_tema %>" placeholder="Descripción">
+                        <button onclick="agregarEnlace(<%= tema.id_tema %>)">+</button>
+                    </div>
+                </div>
 
-                const response = await fetch(`/temas/${id_tema}/votos`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_usuario })
-                });
+                <div class="actions">
+                    <button class="btn-primary" onclick="votar(<%= tema.id_tema %>)">Votar</button>
+                    <button class="btn-edit" onclick="editarTema(<%= tema.id_tema %>, '<%= tema.nombre_tema %>')">Editar</button>
+                    <button class="btn-delete" onclick="eliminarTema(<%= tema.id_tema %>)">Eliminar Tema</button>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+</div>
 
-                if (response.ok) {
-                    // Recargamos para que el backend reordene por votos
-                    window.location.reload();
-                } else {
-                    alert("Error al registrar el voto");
-                }
-            } catch (err) {
-                console.error("Error:", err);
-            }
-        }
-    </script>
+<script>
+    // CREATE TEMA
+    async function crearTema() {
+        const data = {
+            nombre_tema: document.getElementById('nombre_tema').value,
+            autor_tema: document.getElementById('autor_tema').value,
+            descripcion_tema: document.getElementById('descripcion_tema').value
+        };
+        const res = await fetch('/temas', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) window.location.reload();
+    }
+
+    // DELETE TEMA
+    async function eliminarTema(id) {
+        if (!confirm("¿Seguro que quieres eliminar este tema?")) return;
+        const res = await fetch(`/temas/${id}`, { method: 'DELETE' });
+        if (res.ok) window.location.reload();
+    }
+
+    // UPDATE TEMA (Ejemplo rápido con prompt)
+    async function editarTema(id, nombreActual) {
+        const nuevoNombre = prompt("Nuevo título para el tema:", nombreActual);
+        if (!nuevoNombre) return;
+        const res = await fetch(`/temas/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ nombre_tema: nuevoNombre })
+        });
+        if (res.ok) window.location.reload();
+    }
+
+    // CREATE ENLACE
+    async function agregarEnlace(id_tema) {
+        const data = {
+            enlace_url: document.getElementById(`url-${id_tema}`).value,
+            enlace_descripcion: document.getElementById(`desc-${id_tema}`).value
+        };
+        const res = await fetch(`/temas/${id_tema}/enlaces`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) window.location.reload();
+    }
+
+    // DELETE ENLACE
+    async function eliminarEnlace(id_enlace) {
+        const res = await fetch(`/temas/enlaces/${id_enlace}`, { method: 'DELETE' });
+        if (res.ok) window.location.reload();
+    }
+
+    // VOTOS
+    async function votar(id_tema) {
+        const res = await fetch(`/temas/${id_tema}/votos`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id_usuario: 1 })
+        });
+        if (res.ok) window.location.reload();
+    }
+</script>
 </body>
 </html>
