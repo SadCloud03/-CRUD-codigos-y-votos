@@ -45,6 +45,7 @@ const getTemaById = async (req, res) => {
 // --- 3. CREAR TEMA (POST /temas) ---
 const createTema = async (req, res) => {
     try {
+
         const db = await initDB();
         const { nombre_tema, descripcion_tema, autor_tema } = req.body;
         const result = await db.run(
@@ -61,11 +62,14 @@ const createTema = async (req, res) => {
 const updateTema = async (req, res) => {
     try {
         const db = await initDB();
-        const { nombre_tema, descripcion_tema, autor_tema } = req.body;
+        console.log(req.body, req.params.id_tema);
+        const { nombre_tema } = req.body;
+        console.log('1')
         await db.run(
-            'UPDATE temas SET nombre_tema = ?, descripcion_tema = ?, autor_tema = ? WHERE id_tema = ?',
-            [nombre_tema, descripcion_tema, autor_tema, req.params.id_tema]
+            'UPDATE temas SET nombre_tema = ? WHERE id_tema = ?;',
+            [nombre_tema, req.params.id_tema]
         );
+        console.log('2')
         res.json({ message: "Actualizado" });
     } catch (error) {
         res.status(500).json({ error: error.message });
